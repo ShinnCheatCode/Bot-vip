@@ -28,7 +28,7 @@ SUPABASE_URL = os.getenv(
     "SUPABASE_URL", "https://efhqbzdnrtifqjqlqseb.supabase.co"
 ).rstrip("/")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "-1004446959502")
-TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
+TELEGRAM_API = "https://api.telegram.org/bot{8841904683:AAFDQmAuhcoWv26p_5TC_tQV9zhdaXbNoCk}/sendMessage"
 
 KEY_LABEL = "FeedBack @ShinnThieuu"
 KEY_ROLE = "member"
