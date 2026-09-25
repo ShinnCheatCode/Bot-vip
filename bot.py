@@ -10,7 +10,7 @@ import requests
 
 SUPABASE_URL = "https://efhqbzdnrtifqjqlqseb.supabase.co"
 SUPABASE_API_KEY = "sb_publishable_jnycTCgXRMrluvwJORd_4g_B7ojwi9R"
-TELEGRAM_BOT_TOKEN = "8841904683:AAEIbwW6yKdxrC5ukG_2JTpww4RX7JznV7Q"
+TELEGRAM_BOT_TOKEN = "8841904683:AAGjZG_FHT79nunSJICRsTHNKlYGGL5yeyY"
 TELEGRAM_CHAT_ID = "-1004446959502"
 
 VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh")
