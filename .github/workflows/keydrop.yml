@@ -1,0 +1,42 @@
+name: SHINN TEST KEYS
+
+on:
+  schedule:
+    # GitHub dùng UTC
+    # 00:00 UTC = 07:00 VN
+    # 05:00 UTC = 12:00 VN
+    # 10:00 UTC = 17:00 VN
+    # 15:00 UTC = 22:00 VN
+    - cron: "0 0,5,10,15 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    name: Create and Send Keys
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install requests
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install requests
+
+      - name: Run bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
+        run: |
+          python bot.py
