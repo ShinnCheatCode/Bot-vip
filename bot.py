@@ -19,7 +19,7 @@ SUPABASE_ANON_KEY = "sb_publishable_jnycTCgXRMrluvwJORd_4g_B7ojwi9R"
 # ============================================================
 
 # Token lấy từ GitHub Secrets
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("8841904683:AAFDQmAuhcoWv26p_5TC_tQV9zhdaXbNoCk")
 
 # ID nhóm Telegram
 GROUP_CHAT_ID = "-1004446959502"
