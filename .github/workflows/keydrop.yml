@@ -2,11 +2,13 @@ name: SHINN TEST KEYS
 
 on:
   schedule:
-    # GitHub dùng UTC
-    # 00:00 UTC = 07:00 VN
-    # 05:00 UTC = 12:00 VN
-    # 10:00 UTC = 17:00 VN
-    # 15:00 UTC = 22:00 VN
+    # GitHub Actions sử dụng UTC
+    #
+    # 00:00 UTC = 07:00 Việt Nam
+    # 05:00 UTC = 12:00 Việt Nam
+    # 10:00 UTC = 17:00 Việt Nam
+    # 15:00 UTC = 22:00 Việt Nam
+    #
     - cron: "0 0,5,10,15 * * *"
 
   workflow_dispatch:
@@ -36,7 +38,6 @@ jobs:
 
       - name: Run bot
         env:
-          BOT_TOKEN: ${{ secrets.8841904683:AAFDQmAuhcoWv26p_5TC_tQV9zhdaXbNoCk }}
-          MANUAL_RUN: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
           python bot.py
