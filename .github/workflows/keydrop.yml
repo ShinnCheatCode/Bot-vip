@@ -38,6 +38,6 @@ jobs:
 
       - name: Run bot
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.8841904683:AAFDQmAuhcoWv26p_5TC_tQV9zhdaXbNoCk }}
         run: |
           python bot.py
