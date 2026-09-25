@@ -18,7 +18,7 @@ KEY_TTL_HOURS = 1
 KEYS_PER_DROP = 5
 KEY_MIN = 1
 KEY_MAX = 50
-KEY_PATTERN = re.compile(r"^Shinn-Cheat-Test(\\d+)$")
+KEY_PATTERN = re.compile(r"^Shinn-Cheat-Test(\d+)$")
 KEY_LABEL = "FeedBack @ShinnThieuu"
 
 
@@ -109,22 +109,22 @@ def create_key(number, expires):
 
 
 def build_message(rows):
-    block = "\\n".join(f"{i}. {row['key']}" for i, row in enumerate(rows, 1))
+    block = "\n".join(f"{i}. {row['key']}" for i, row in enumerate(rows, 1))
     exp = parse_iso(rows[0].get("expires_at")) if rows else None
     exp_txt = exp.astimezone(VN_TZ).strftime("%H:%M %d/%m/%Y") if exp else "-"
     return (
-        "SHINN CHEAT — Free test keys\\n\\n"
-        f"{block}\\n\\n"
-        "VI\\n"
-        "• 5 key / lần • hạn 1 giờ • 1 thiết bị\\n"
-        "• Cập nhật mỗi 5 giờ\\n"
-        "• Thêm thành viên để nhận key free\\n"
-        "• Key dài hạn / tạo key: @ShinnThieuu\\n\\n"
-        "EN\\n"
-        "• 5 keys per drop • 1 hour • 1 device\\n"
-        "• Posted every 5 hours\\n"
-        "• Add members to get free keys\\n"
-        "• Long-term / create keys: @ShinnThieuu\\n\\n"
+        "SHINN CHEAT — Free test keys\n\n"
+        f"{block}\n\n"
+        "VI\n"
+        "• 5 key / lần • hạn 1 giờ • 1 thiết bị\n"
+        "• Cập nhật mỗi 5 giờ\n"
+        "• Thêm thành viên để nhận key free\n"
+        "• Key dài hạn / tạo key: @ShinnThieuu\n\n"
+        "EN\n"
+        "• 5 keys per drop • 1 hour • 1 device\n"
+        "• Posted every 5 hours\n"
+        "• Add members to get free keys\n"
+        "• Long-term / create keys: @ShinnThieuu\n\n"
         f"Hết hạn: {exp_txt} (VN)"
     )
 
@@ -148,9 +148,6 @@ def send_telegram(text):
 def run_once():
     now = now_vn()
     print("[info]", now.isoformat())
-    if not (5 <= now.hour < 24):
-        print("[skip] ngoai 5h-24h")
-        return 0
     utc = now_utc()
     expires = utc + timedelta(hours=KEY_TTL_HOURS)
     nums = pick_next(fetch_test_keys(), utc)
