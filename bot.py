@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import argparse
 import sys
 import re
 from datetime import datetime, timedelta, timezone
@@ -105,10 +104,7 @@ def create_key(number, expires):
     )
     data = r.json()
     if r.status_code >= 300:
-        raise RuntimeError(
-            f"Khong tao duoc key: {data}. "
-            "Key publishable chi DOC duoc. Can service_role / sb_secret_..."
-        )
+        raise RuntimeError(data)
     return data[0] if isinstance(data, list) else data
 
 
@@ -158,17 +154,4 @@ def run_once():
     utc = now_utc()
     expires = utc + timedelta(hours=KEY_TTL_HOURS)
     nums = pick_next(fetch_test_keys(), utc)
-    print("[info] tao", nums)
-    rows = [create_key(n, expires) for n in nums]
-    send_telegram(build_message(rows))
-    print("[ok] da gui group")
-    return 0
-
-
-if __name__ == "__main__":
-    argparse.ArgumentParser().add_argument("--once", action="store_true").parse_args()
-    try:
-        sys.exit(run_once())
-    except Exception as e:
-        print("[error]", e, file=sys.stderr)
-        sys.exit(1)
+    print
