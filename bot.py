@@ -1,7 +1,5 @@
 import os
-from datetime import datetime
-from zoneinfo import ZoneInfo
-
+import html
 import requests
 
 
@@ -11,51 +9,63 @@ import requests
 
 SUPABASE_URL = "https://efhqbzdnrtifqjqlqseb.supabase.co"
 
-SUPABASE_ANON_KEY = "sb_publishable_jnycTCgXRMrluvwJORd_4g_B7ojwi9R"
+SUPABASE_ANON_KEY = (
+    "sb_publishable_jnycTCgXRMrluvwJORd_4g_B7ojwi9R"
+)
 
 
 # ============================================================
 # TELEGRAM
 # ============================================================
 
-# Token lấy từ GitHub Secrets
-BOT_TOKEN = os.getenv("8841904683:AAFDQmAuhcoWv26p_5TC_tQV9zhdaXbNoCk")
+# Lấy BOT TOKEN từ GitHub Secrets
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 # ID nhóm Telegram
 GROUP_CHAT_ID = "-1004446959502"
 
 
 # ============================================================
-# TIME
+# CONFIG
 # ============================================================
-
-TZ = ZoneInfo("Asia/Ho_Chi_Minh")
-
-# 07:00 - 12:00 - 17:00 - 22:00
-DROP_HOURS = [7, 12, 17, 22]
 
 LABEL = "FeedBack @ShinnThieuu"
 
 
 # ============================================================
-# KIỂM TRA TOKEN
+# KIỂM TRA CONFIG
 # ============================================================
 
-if not BOT_TOKEN:
-    raise RuntimeError(
-        "BOT_TOKEN chưa được thiết lập trong GitHub Secrets."
-    )
+def check_config():
+    if not BOT_TOKEN:
+        raise RuntimeError(
+            "BOT_TOKEN chưa được thiết lập trong GitHub Secrets."
+        )
+
+    if not SUPABASE_URL:
+        raise RuntimeError(
+            "SUPABASE_URL chưa được thiết lập."
+        )
+
+    if not SUPABASE_ANON_KEY:
+        raise RuntimeError(
+            "SUPABASE_ANON_KEY chưa được thiết lập."
+        )
+
+    if not GROUP_CHAT_ID:
+        raise RuntimeError(
+            "GROUP_CHAT_ID chưa được thiết lập."
+        )
 
 
 # ============================================================
-# TẠO KEY
+# TẠO KEY TỪ SUPABASE
 # ============================================================
 
 def create_keys():
 
     url = (
-        f"{SUPABASE_URL}"
-        "/rest/v1/rpc/create_shinn_key"
+        f"{SUPABASE_URL}/rest/v1/rpc/create_shinn_key"
     )
 
     headers = {
@@ -81,8 +91,7 @@ def create_keys():
     )
 
     print(
-        "[INFO] Supabase HTTP:",
-        response.status_code
+        f"[INFO] Supabase HTTP: {response.status_code}"
     )
 
     if not response.ok:
@@ -91,25 +100,92 @@ def create_keys():
 
     response.raise_for_status()
 
-    data = response.json()
+    try:
+        data = response.json()
+    except ValueError as exc:
+        raise RuntimeError(
+            "Supabase trả về dữ liệu không phải JSON."
+        ) from exc
 
     print("[INFO] Đã nhận dữ liệu từ Supabase.")
 
-    # RPC trả về danh sách key
+    # --------------------------------------------------------
+    # Trường hợp RPC trả về danh sách
+    # --------------------------------------------------------
+
     if isinstance(data, list):
 
-        if len(data) == 0:
+        if not data:
             raise RuntimeError(
-                "Supabase không trả về key."
+                "Supabase không trả về key nào."
             )
 
-        return "\n".join(
-            f"`{str(key)}`"
-            for key in data
+        formatted_keys = []
+
+        for item in data:
+
+            # Nếu item là object/dict
+            if isinstance(item, dict):
+
+                # Hỗ trợ một số dạng phổ biến
+                key = (
+                    item.get("key")
+                    or item.get("license")
+                    or item.get("code")
+                    or item.get("value")
+                )
+
+                if key is None:
+                    key = str(item)
+
+            else:
+                key = str(item)
+
+            # Escape HTML để key không phá message Telegram
+            key = html.escape(str(key))
+
+            formatted_keys.append(
+                f"<code>{key}</code>"
+            )
+
+        return "\n".join(formatted_keys)
+
+    # --------------------------------------------------------
+    # Trường hợp RPC trả về object/string
+    # --------------------------------------------------------
+
+    if isinstance(data, dict):
+
+        key = (
+            data.get("key")
+            or data.get("license")
+            or data.get("code")
+            or data.get("value")
         )
 
-    # RPC trả về một giá trị
-    return f"`{str(data).replace(chr(34), '')}`"
+        if key is not None:
+            key = html.escape(str(key))
+            return f"<code>{key}</code>"
+
+    if isinstance(data, str):
+
+        key = html.escape(data)
+
+        if not key.strip():
+            raise RuntimeError(
+                "Supabase trả về key rỗng."
+            )
+
+        return f"<code>{key}</code>"
+
+    # --------------------------------------------------------
+    # Không nhận diện được dữ liệu
+    # --------------------------------------------------------
+
+    raise RuntimeError(
+        f"Định dạng dữ liệu Supabase không được hỗ trợ: "
+        f"{type(data).__name__}"
+    )
 
 
 # ============================================================
@@ -126,7 +202,7 @@ def send_message(message):
     payload = {
         "chat_id": GROUP_CHAT_ID,
         "text": message,
-        "parse_mode": "Markdown",
+        "parse_mode": "HTML",
         "disable_web_page_preview": True,
     }
 
@@ -139,8 +215,7 @@ def send_message(message):
     )
 
     print(
-        "[INFO] Telegram HTTP:",
-        response.status_code
+        f"[INFO] Telegram HTTP: {response.status_code}"
     )
 
     if not response.ok:
@@ -149,7 +224,12 @@ def send_message(message):
 
     response.raise_for_status()
 
-    result = response.json()
+    try:
+        result = response.json()
+    except ValueError as exc:
+        raise RuntimeError(
+            "Telegram trả về dữ liệu không phải JSON."
+        ) from exc
 
     if not result.get("ok"):
         raise RuntimeError(
@@ -165,17 +245,17 @@ def send_message(message):
 
 def build_message(keys):
 
-    return f"""🎁 *SHINN CHEAT TEST KEYS*
+    return f"""🎁 <b>SHINN CHEAT TEST KEYS</b>
 
 {keys}
 
-🇻🇳 *KEY TEST*
+🇻🇳 <b>KEY TEST</b>
 • 5 key miễn phí
 • Hiệu lực: 1 giờ
 • 1 thiết bị / key
 • Owner: FeedBack @ShinnThieuu
 
-🇺🇸 *TEST KEYS*
+🇺🇸 <b>TEST KEYS</b>
 • 5 free keys
 • Valid for 1 hour
 • 1 device per key
@@ -189,40 +269,16 @@ def build_message(keys):
 
 def main():
 
-    now = datetime.now(TZ)
+    print("=" * 60)
+    print("[INFO] SHINN TEST KEY BOT")
+    print("[INFO] Bắt đầu chạy...")
+    print("=" * 60)
 
-    print("=" * 55)
-
-    print(
-        "[INFO] Giờ Việt Nam:",
-        now.strftime("%Y-%m-%d %H:%M:%S")
-    )
-
-    print(
-        "[INFO] Giờ phát:",
-        DROP_HOURS
-    )
-
-    print("=" * 55)
-
-    # GitHub Actions truyền biến này khi bấm
-    # Run workflow thủ công.
-    manual_run = os.getenv("MANUAL_RUN", "false").lower() == "true"
-
-    # Nếu chạy tự động thì chỉ cho phép các giờ quy định.
-    # Nếu bấm Run workflow thì cho phép chạy test ngay.
-    if not manual_run:
-
-        if now.hour not in DROP_HOURS:
-            print("[INFO] Chưa đến giờ phát key.")
-            print("[INFO] Kết thúc.")
-            return
-
-    else:
-        print("[INFO] Đang chạy TEST thủ công.")
+    # Kiểm tra cấu hình
+    check_config()
 
     # --------------------------------------------------------
-    # TẠO KEY
+    # TẠO 5 KEY
     # --------------------------------------------------------
 
     print("[INFO] Đang tạo 5 key...")
@@ -243,9 +299,13 @@ def main():
 
     send_message(message)
 
-    print("=" * 55)
+    # --------------------------------------------------------
+    # HOÀN TẤT
+    # --------------------------------------------------------
+
+    print("=" * 60)
     print("[SUCCESS] HOÀN TẤT")
-    print("=" * 55)
+    print("=" * 60)
 
 
 # ============================================================
